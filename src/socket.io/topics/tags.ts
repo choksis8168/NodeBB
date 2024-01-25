@@ -1,14 +1,14 @@
 'use strict';
 
-const meta = require('../../meta');
-const user = require('../../user');
-const topics = require('../../topics');
-const categories = require('../../categories');
-const privileges = require('../../privileges');
-const utils = require('../../utils');
+import * as meta from '../../meta';
+import * as user from '../../user';
+import * as topics from '../../topics';
+import * as categories from '../../categories';
+import * as privileges from '../../privileges';
+import * as utils from '../../utils';
 
-module.exports = function (SocketTopics) {
-    SocketTopics.isTagAllowed = async function (socket, data) {
+module.exports = function (SocketTopics: any) {
+    SocketTopics.isTagAllowed = async function (socket: any, data: any) {
         if (!data || !utils.isNumber(data.cid) || !data.tag) {
             throw new Error('[[error:invalid-data]]');
         }
@@ -25,7 +25,7 @@ module.exports = function (SocketTopics) {
             );
     };
 
-    SocketTopics.canRemoveTag = async function (socket, data) {
+    SocketTopics.canRemoveTag = async function (socket: any, data: any) {
         if (!data || !data.tag) {
             throw new Error('[[error:invalid-data]]');
         }
@@ -35,7 +35,7 @@ module.exports = function (SocketTopics) {
         return isPrivileged || !systemTags.includes(String(data.tag).trim());
     };
 
-    SocketTopics.autocompleteTags = async function (socket, data) {
+    SocketTopics.autocompleteTags = async function (socket: any, data: any) {
         if (data.cid) {
             const canRead = await privileges.categories.can('topics:read', data.cid, socket.uid);
             if (!canRead) {
@@ -44,19 +44,19 @@ module.exports = function (SocketTopics) {
         }
         data.cids = await categories.getCidsByPrivilege('categories:cid', socket.uid, 'topics:read');
         const result = await topics.autocompleteTags(data);
-        return result.map(tag => tag.value);
+        return result.map((tag: any) => tag.value);
     };
 
-    SocketTopics.searchTags = async function (socket, data) {
+    SocketTopics.searchTags = async function (socket: any, data: any) {
         const result = await searchTags(socket.uid, topics.searchTags, data);
-        return result.map(tag => tag.value);
+        return result.map((tag: any) => tag.value);
     };
 
-    SocketTopics.searchAndLoadTags = async function (socket, data) {
+    SocketTopics.searchAndLoadTags = async function (socket: any, data: any) {
         return await searchTags(socket.uid, topics.searchAndLoadTags, data);
     };
 
-    async function searchTags(uid, method, data) {
+    async function searchTags(uid: any, method: any, data: any) {
         const allowed = await privileges.global.can('search:tags', uid);
         if (!allowed) {
             throw new Error('[[error:no-privileges]]');
@@ -71,7 +71,7 @@ module.exports = function (SocketTopics) {
         return await method(data);
     }
 
-    SocketTopics.loadMoreTags = async function (socket, data) {
+    SocketTopics.loadMoreTags = async function (socket: any, data: any) {
         if (!data || !utils.isNumber(data.after)) {
             throw new Error('[[error:invalid-data]]');
         }

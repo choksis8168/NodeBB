@@ -14,7 +14,9 @@ interface Tag {
     value: string;
 }
 
-async function searchTags(uid: number, method: Function, data: {
+type SearchTagsFunction = (arg1: { cids?: number[]; cid?: number }) => Tag[];
+
+async function searchTags(uid: number, method: SearchTagsFunction, data: {
     cids?: number[]; cid?: number
 }) {
     // The next line calls a function in a module that has not been updated to TS yet
@@ -33,8 +35,9 @@ async function searchTags(uid: number, method: Function, data: {
     }
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    data.cids = await categories.getCidsByPrivilege('categories:cid', uid, 'topics:read');
-    return await method(data);
+    const Cids: number[] = await categories.getCidsByPrivilege('categories:cid', uid, 'topics:read') as number[];
+    data.cids = Cids;
+    return method(data);
 }
 
 interface SocketTopics {
@@ -44,7 +47,7 @@ interface SocketTopics {
         cids: number[]; cid?: number
     }): Promise<string[]>;
     searchTags(socket: Socket, data: { cids?: number[]; cid?: number }): Promise<string[]>;
-    searchAndLoadTags(socket: Socket, data: { cid?: number }): Promise<string[]>;
+    searchAndLoadTags(socket: Socket, data: { cid?: number }): Promise<Tag[]>;
     loadMoreTags(socket: Socket, data: { after: string }): Promise<{ tags: string[]; nextStart: number }>;
 }
 
@@ -88,7 +91,8 @@ const SocketTopics: SocketTopics = {
         }
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        data.cids = await categories.getCidsByPrivilege('categories:cid', socket.uid, 'topics:read');
+        const Cids: number[] = await categories.getCidsByPrivilege('categories:cid', socket.uid, 'topics:read') as number[];
+        data.cids = Cids;
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         const result: Tag[] = await topics.autocompleteTags(data) as Tag[];
@@ -97,17 +101,21 @@ const SocketTopics: SocketTopics = {
     async searchTags(socket, data) {
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        const result: Tag[] = await searchTags(socket.uid, topics.searchTags, data) as Tag[];
+        const result = await searchTags(socket.uid, (topics.searchTags as SearchTagsFunction), data);
         return result.map(tag => tag.value);
     },
     async searchAndLoadTags(socket, data) {
-        return await searchTags(socket.uid, topics.searchAndLoadTags, data);
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        return await searchTags(socket.uid, (topics.searchAndLoadTags as SearchTagsFunction), data);
     },
     async loadMoreTags(socket, data) {
         if (!data || !utils.isNumber(data.after)) {
             throw new Error('[[error:invalid-data]]');
         }
-        const start: number = parseInt(data.after, 10) as number;
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        const start = parseInt(data.after, 10);
         const stop = start + 99;
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call

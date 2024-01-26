@@ -36,8 +36,9 @@ function searchTags(uid, method, data) {
         }
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        data.cids = yield categories_1.default.getCidsByPrivilege('categories:cid', uid, 'topics:read');
-        return yield method(data);
+        const Cids = yield categories_1.default.getCidsByPrivilege('categories:cid', uid, 'topics:read');
+        data.cids = Cids;
+        return method(data);
     });
 }
 const SocketTopics = {
@@ -85,7 +86,8 @@ const SocketTopics = {
             }
             // The next line calls a function in a module that has not been updated to TS yet
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-            data.cids = yield categories_1.default.getCidsByPrivilege('categories:cid', socket.uid, 'topics:read');
+            const Cids = yield categories_1.default.getCidsByPrivilege('categories:cid', socket.uid, 'topics:read');
+            data.cids = Cids;
             // The next line calls a function in a module that has not been updated to TS yet
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             const result = yield topics_1.default.autocompleteTags(data);
@@ -102,6 +104,8 @@ const SocketTopics = {
     },
     searchAndLoadTags(socket, data) {
         return __awaiter(this, void 0, void 0, function* () {
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             return yield searchTags(socket.uid, topics_1.default.searchAndLoadTags, data);
         });
     },
@@ -110,6 +114,8 @@ const SocketTopics = {
             if (!data || !utils_1.default.isNumber(data.after)) {
                 throw new Error('[[error:invalid-data]]');
             }
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             const start = parseInt(data.after, 10);
             const stop = start + 99;
             // The next line calls a function in a module that has not been updated to TS yet

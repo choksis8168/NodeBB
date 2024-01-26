@@ -1,27 +1,4 @@
-'use strict';
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -31,88 +8,118 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-const meta = __importStar(require("../../meta"));
-const user = __importStar(require("../../user"));
-const topics = __importStar(require("../../topics"));
-const categories = __importStar(require("../../categories"));
-const privileges = __importStar(require("../../privileges"));
-const utils = __importStar(require("../../utils"));
-module.exports = function (SocketTopics) {
-    SocketTopics.isTagAllowed = function (socket, data) {
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const meta_1 = __importDefault(require("../../meta"));
+const user_1 = __importDefault(require("../../user"));
+const topics_1 = __importDefault(require("../../topics"));
+const categories_1 = __importDefault(require("../../categories"));
+const privileges_1 = __importDefault(require("../../privileges"));
+const utils_1 = __importDefault(require("../../utils"));
+function searchTags(uid, method, data) {
+    return __awaiter(this, void 0, void 0, function* () {
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        const allowed = yield privileges_1.default.global.can('search:tags', uid);
+        if (!allowed) {
+            throw new Error('[[error:no-privileges]]');
+        }
+        if (data.cid) {
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            const canRead = yield privileges_1.default.categories.can('topics:read', data.cid, uid);
+            if (!canRead) {
+                throw new Error('[[error:no-privileges]]');
+            }
+        }
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        data.cids = yield categories_1.default.getCidsByPrivilege('categories:cid', uid, 'topics:read');
+        return yield method(data);
+    });
+}
+const SocketTopics = {
+    isTagAllowed(socket, data) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!data || !utils.isNumber(data.cid) || !data.tag) {
+            if (!data || !utils_1.default.isNumber(data.cid) || !data.tag) {
                 throw new Error('[[error:invalid-data]]');
             }
-            const systemTags = (meta.config.systemTags || '').split(',');
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            const systemTags = (meta_1.default.config.systemTags || '').split(',');
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             const [tagWhitelist, isPrivileged] = yield Promise.all([
-                categories.getTagWhitelist([data.cid]),
-                user.isPrivileged(socket.uid),
+                categories_1.default.getTagWhitelist([data.cid]),
+                user_1.default.isPrivileged(socket.uid),
             ]);
             return isPrivileged ||
-                (!systemTags.includes(data.tag) &&
-                    (!tagWhitelist[0].length || tagWhitelist[0].includes(data.tag)));
+                (!systemTags.includes(data.tag) && (!tagWhitelist[0].length || tagWhitelist[0].includes(data.tag)));
         });
-    };
-    SocketTopics.canRemoveTag = function (socket, data) {
+    },
+    canRemoveTag(socket, data) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!data || !data.tag) {
                 throw new Error('[[error:invalid-data]]');
             }
-            const systemTags = (meta.config.systemTags || '').split(',');
-            const isPrivileged = yield user.isPrivileged(socket.uid);
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            const systemTags = (meta_1.default.config.systemTags || '').split(',');
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            const isPrivileged = yield user_1.default.isPrivileged(socket.uid);
             return isPrivileged || !systemTags.includes(String(data.tag).trim());
         });
-    };
-    SocketTopics.autocompleteTags = function (socket, data) {
+    },
+    autocompleteTags(socket, data) {
         return __awaiter(this, void 0, void 0, function* () {
             if (data.cid) {
-                const canRead = yield privileges.categories.can('topics:read', data.cid, socket.uid);
+                // The next line calls a function in a module that has not been updated to TS yet
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+                const canRead = yield privileges_1.default.categories.can('topics:read', data.cid, socket.uid);
                 if (!canRead) {
                     throw new Error('[[error:no-privileges]]');
                 }
             }
-            data.cids = yield categories.getCidsByPrivilege('categories:cid', socket.uid, 'topics:read');
-            const result = yield topics.autocompleteTags(data);
-            return result.map((tag) => tag.value);
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            data.cids = yield categories_1.default.getCidsByPrivilege('categories:cid', socket.uid, 'topics:read');
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            const result = yield topics_1.default.autocompleteTags(data);
+            return result.map(tag => tag.value);
         });
-    };
-    SocketTopics.searchTags = function (socket, data) {
+    },
+    searchTags(socket, data) {
         return __awaiter(this, void 0, void 0, function* () {
-            const result = yield searchTags(socket.uid, topics.searchTags, data);
-            return result.map((tag) => tag.value);
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            const result = yield searchTags(socket.uid, topics_1.default.searchTags, data);
+            return result.map(tag => tag.value);
         });
-    };
-    SocketTopics.searchAndLoadTags = function (socket, data) {
+    },
+    searchAndLoadTags(socket, data) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield searchTags(socket.uid, topics.searchAndLoadTags, data);
+            return yield searchTags(socket.uid, topics_1.default.searchAndLoadTags, data);
         });
-    };
-    function searchTags(uid, method, data) {
+    },
+    loadMoreTags(socket, data) {
         return __awaiter(this, void 0, void 0, function* () {
-            const allowed = yield privileges.global.can('search:tags', uid);
-            if (!allowed) {
-                throw new Error('[[error:no-privileges]]');
-            }
-            if (data.cid) {
-                const canRead = yield privileges.categories.can('topics:read', data.cid, uid);
-                if (!canRead) {
-                    throw new Error('[[error:no-privileges]]');
-                }
-            }
-            data.cids = yield categories.getCidsByPrivilege('categories:cid', uid, 'topics:read');
-            return yield method(data);
-        });
-    }
-    SocketTopics.loadMoreTags = function (socket, data) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!data || !utils.isNumber(data.after)) {
+            if (!data || !utils_1.default.isNumber(data.after)) {
                 throw new Error('[[error:invalid-data]]');
             }
             const start = parseInt(data.after, 10);
             const stop = start + 99;
-            const cids = yield categories.getCidsByPrivilege('categories:cid', socket.uid, 'topics:read');
-            const tags = yield topics.getCategoryTagsData(cids, start, stop);
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            const cids = yield categories_1.default.getCidsByPrivilege('categories:cid', socket.uid, 'topics:read');
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            const tags = yield topics_1.default.getCategoryTagsData(cids, start, stop);
             return { tags: tags.filter(Boolean), nextStart: stop + 1 };
         });
-    };
+    },
 };
+exports.default = SocketTopics;

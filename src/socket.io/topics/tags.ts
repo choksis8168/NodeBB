@@ -1,6 +1,6 @@
 import meta from '../../meta';
 import user from '../../user';
-import * as topics from '../../topics';
+import topics from '../../topics';
 import categories from '../../categories';
 import privileges from '../../privileges';
 import utils from '../../utils';
